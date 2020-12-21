@@ -15,6 +15,7 @@ import org.apache.commons.math3.util.Pair;
 
 import c0.analyser.Analyser;
 import c0.error.CompileError;
+import c0.error.TokenizeError;
 import c0.instruction.Instruction;
 import c0.tokenizer.Static;
 import c0.tokenizer.StringIter;
@@ -37,6 +38,7 @@ public class App {
             result = argparse.parseArgs(args);
         } catch (ArgumentParserException e1) {
             argparse.handleError(e1);
+            System.exit(2);
             return;
         }
 
@@ -110,63 +112,66 @@ public class App {
         
         if (result.getBoolean("tokenize")) {
             // tokenize
-            var tokens = new ArrayList<Token>();
             try {
-                while (true) {
-                    var token = tokenizer.nextToken();
-                    if (token.getTokenType().equals(TokenType.EOF)) {
-                        break;
-                    }
-                    tokens.add(token);
-                }
-            } catch (Exception e) {
-                // 遇到错误不输出，直接退出
-                System.err.println(e);
+				var tokens = new ArrayList<Token>();
+				while (true) {
+				    var token = tokenizer.nextToken();
+				    if (token.getTokenType().equals(TokenType.EOF)) {
+				        break;
+				    }
+				    tokens.add(token);
+				}
+				for (Token token : tokens) {
+				    output.println(token.toString());
+				}
+			} catch (TokenizeError e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.err.println(e);
                 System.exit(2);
                 return;
-            }
-            for (Token token : tokens) {
-                output.println(token.toString());
-            }
+			}
         } else if (result.getBoolean("analyse")) {
             // analyze
-        	Static statics = new Static(tokenizer);
-        	Pair<HashMap<Integer,String>,List<Pair<String,Integer>>> pair = statics.analyse();
-        	HashMap<Integer,String> stas = pair.getKey();
-        	List<Pair<String,Integer>> loc = pair.getValue();
-        	for(int i=0;i<stas.size();i++)
-            {
-            	output.print("static: ");
-                String name = stas.get(i);
-                if(name.equals("0"))
-                	output.println("0 0 0 0 0 0 0 0 (`\\u{0}\\u{0}\\u{0}\\u{0}\\u{0}\\u{0}\\u{0}\\u{0}`)");
-                else
-                {
-                	for(int j=0;j<name.length();j++)
-                		output.print(Integer.toHexString((int)(name.charAt(j)))+" ");
-                	output.println("(`"+name+"`)");
-                }
-                output.println();
-            }
-            output.println("static: 5F 73 74 61 72 74 (`_start`)");
-            output.println();
-            output.println();
-        	var analyzer = new Analyser(tokenizer2,stas,output,loc);
-            List<Instruction> instructions;
-            try {
-                instructions = analyzer.analyse();
-            } catch (Exception e) {
-                // 遇到错误不输出，直接退出
-                System.err.println(e);
+        	try {
+				Static statics = new Static(tokenizer);
+				Pair<HashMap<Integer,String>,List<Pair<String,Integer>>> pair = statics.analyse();
+				HashMap<Integer,String> stas = pair.getKey();
+				List<Pair<String,Integer>> loc = pair.getValue();
+				for(int i=0;i<stas.size();i++)
+				{
+					output.print("static: ");
+				    String name = stas.get(i);
+				    if(name.equals("0"))
+				    	output.println("0 0 0 0 0 0 0 0 (`\\u{0}\\u{0}\\u{0}\\u{0}\\u{0}\\u{0}\\u{0}\\u{0}`)");
+				    else
+				    {
+				    	for(int j=0;j<name.length();j++)
+				    		output.print(Integer.toHexString((int)(name.charAt(j)))+" ");
+				    	output.println("(`"+name+"`)");
+				    }
+				    output.println();
+				}
+				output.println("static: 5F 73 74 61 72 74 (`_start`)");
+				output.println();
+				output.println();
+				var analyzer = new Analyser(tokenizer2,stas,output,loc);
+				List<Instruction> instructions;
+				instructions = analyzer.analyse();
+				for (Instruction instruction : instructions) {
+				    output.println(instruction.toString());
+				}
+			} catch (CompileError e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.err.println(e);
                 System.exit(2);
                 return;
-            }
-            for (Instruction instruction : instructions) {
-                output.println(instruction.toString());
-            }
-        } else {
+			}
+        } 
+        else {
             System.err.println("Please specify either '--analyse' or '--tokenize'.");
-            System.exit(3);
+            System.exit(2);
         }
     }
 

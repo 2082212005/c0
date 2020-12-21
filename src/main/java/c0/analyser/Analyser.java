@@ -476,76 +476,65 @@ public final class Analyser {
      */
     private String analyseCompare_expr() throws CompileError {
     	String str1 = analyseExpr();
-    	try {
-			if(check(TokenType.LE)||check(TokenType.LT)||check(TokenType.GE)||check(TokenType.GT)||check(TokenType.EQ)||check(TokenType.NEQ))
+    	if(check(TokenType.LE)||check(TokenType.LT)||check(TokenType.GE)||check(TokenType.GT)||check(TokenType.EQ)||check(TokenType.NEQ))
+		{
+			var compareSign = next();
+			String str2 = analyseExpr();
+			if(!str1.equals(str2))
+				throw new AnalyzeError(ErrorCode.TypeMismatch,compareSign.getStartPos());
+			else
 			{
-				var compareSign = next();
-				String str2 = analyseExpr();
-				if(!str1.equals(str2))
-					throw new AnalyzeError(ErrorCode.TypeMismatch,compareSign.getStartPos());
+				if(compareSign.getValue().toString().equals(">"))
+				{
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+					else
+						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
+					this.insructions.add(new Pair<String, Long>("SetGt",(long) -1));
+				}
+				else if(compareSign.getValue().toString().equals("<"))
+				{
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+					else
+						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
+					this.insructions.add(new Pair<String, Long>("SetLt",(long) -1));
+				}
+				else if(compareSign.getValue().toString().equals(">="))
+				{
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+					else
+						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
+					this.insructions.add(new Pair<String, Long>("SetLt",(long) -1));
+					this.insructions.add(new Pair<String, Long>("Not",(long) -1));
+				}
+				else if(compareSign.getValue().toString().equals("<="))
+				{
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+					else
+						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
+					this.insructions.add(new Pair<String, Long>("SetGt",(long) -1));
+					this.insructions.add(new Pair<String, Long>("Not",(long) -1));
+				}
+				else if(compareSign.getValue().toString().equals("!="))
+				{
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+					else
+						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
+				}
 				else
 				{
-					if(compareSign.getValue().toString().equals(">"))
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-						this.insructions.add(new Pair<String, Long>("SetGt",(long) -1));
-					}
-					else if(compareSign.getValue().toString().equals("<"))
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-						this.insructions.add(new Pair<String, Long>("SetLt",(long) -1));
-					}
-					else if(compareSign.getValue().toString().equals(">="))
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-						this.insructions.add(new Pair<String, Long>("SetLt",(long) -1));
-						this.insructions.add(new Pair<String, Long>("Not",(long) -1));
-					}
-					else if(compareSign.getValue().toString().equals("<="))
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-						this.insructions.add(new Pair<String, Long>("SetGt",(long) -1));
-						this.insructions.add(new Pair<String, Long>("Not",(long) -1));
-					}
-					else if(compareSign.getValue().toString().equals("!="))
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-					}
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
 					else
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-						this.insructions.add(new Pair<String, Long>("Not",(long) -1));
-					}
+						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
+					this.insructions.add(new Pair<String, Long>("Not",(long) -1));
 				}
-				str1 = "boolean";
 			}
-		} catch (TokenizeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (AnalyzeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CompileError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			str1 = "boolean";
 		}
     	return str1;
     }
@@ -557,40 +546,29 @@ public final class Analyser {
     	String str1 = analyseExpr1();
     	String str2 = str1;
     	var PlusOrMinus = new Token(TokenType.None,null,new Pos(0,0),new Pos(0,0));
-    	try {
-			while(check(TokenType.PLUS)||check(TokenType.MINUS))
+    	while(check(TokenType.PLUS)||check(TokenType.MINUS))
+		{
+			PlusOrMinus = next();
+			str2 = analyseExpr1();
+			if(!str1.equals(str2))
+				throw new AnalyzeError(ErrorCode.TypeMismatch,PlusOrMinus.getStartPos());
+			else
 			{
-				PlusOrMinus = next();
-				str2 = analyseExpr1();
-				if(!str1.equals(str2))
-					throw new AnalyzeError(ErrorCode.TypeMismatch,PlusOrMinus.getStartPos());
+				if(PlusOrMinus.getValue().toString().equals("+"))
+				{
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("AddI",(long) -1));
+					else
+						this.insructions.add(new Pair<String, Long>("AddF",(long) -1));
+				}
 				else
 				{
-					if(PlusOrMinus.getValue().toString().equals("+"))
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("AddI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("AddF",(long) -1));
-					}
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("SubI",(long) -1));
 					else
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("SubI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("SubF",(long) -1));
-					}
+						this.insructions.add(new Pair<String, Long>("SubF",(long) -1));
 				}
 			}
-		} catch (TokenizeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (AnalyzeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CompileError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
     	return str1;
     }
@@ -599,41 +577,29 @@ public final class Analyser {
     	String str1 = analyseExpr1(ident);
     	String str2 = str1;
     	var PlusOrMinus = new Token(TokenType.None,null,new Pos(0,0),new Pos(0,0));
-    	try {
-			while(check(TokenType.PLUS)||check(TokenType.MINUS))
+    	while(check(TokenType.PLUS)||check(TokenType.MINUS))
+		{
+			PlusOrMinus = next();
+			str2 = analyseExpr1();
+			if(!str1.equals(str2))
+				throw new AnalyzeError(ErrorCode.TypeMismatch,PlusOrMinus.getStartPos());
+			else
 			{
-				PlusOrMinus = next();
-				str2 = analyseExpr1();
-				if(!str1.equals(str2))
-					throw new AnalyzeError(ErrorCode.TypeMismatch,PlusOrMinus.getStartPos());
+				if(PlusOrMinus.getValue().toString().equals("+"))
+				{
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("AddI",(long) -1));
+					else
+						this.insructions.add(new Pair<String, Long>("AddF",(long) -1));
+				}
 				else
 				{
-					if(PlusOrMinus.getValue().toString().equals("+"))
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("AddI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("AddF",(long) -1));
-					}
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("SubI",(long) -1));
 					else
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("SubI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("SubF",(long) -1));
-					}
+						this.insructions.add(new Pair<String, Long>("SubF",(long) -1));
 				}
 			}
-
-		} catch (TokenizeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (AnalyzeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CompileError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
     	return str1;
     }
@@ -645,40 +611,29 @@ public final class Analyser {
     	String str1 = analyseExpr2();
     	String str2 = str1;
     	var MulOrDiv = new Token(TokenType.None,null,new Pos(0,0),new Pos(0,0));
-    	try {
-			while(check(TokenType.MUL)||check(TokenType.DIV))
+    	while(check(TokenType.MUL)||check(TokenType.DIV))
+		{
+			MulOrDiv = next();
+			str2 = analyseExpr2();
+			if(!str1.equals(str2))
+				throw new AnalyzeError(ErrorCode.TypeMismatch,MulOrDiv.getStartPos());
+			else
 			{
-				MulOrDiv = next();
-				str2 = analyseExpr2();
-				if(!str1.equals(str2))
-					throw new AnalyzeError(ErrorCode.TypeMismatch,MulOrDiv.getStartPos());
+				if(MulOrDiv.getValue().toString().equals("*"))
+				{
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("MulI",(long) -1));
+					else
+						this.insructions.add(new Pair<String, Long>("MulF",(long) -1));
+				}
 				else
 				{
-					if(MulOrDiv.getValue().toString().equals("*"))
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("MulI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("MulF",(long) -1));
-					}
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("DivI",(long) -1));
 					else
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("DivI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("DivF",(long) -1));
-					}
+						this.insructions.add(new Pair<String, Long>("DivF",(long) -1));
 				}
 			}
-		} catch (TokenizeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (AnalyzeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CompileError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		return str1;
     }
@@ -687,41 +642,29 @@ public final class Analyser {
     	String str1 = analyseExpr2(ident);
     	String str2 = str1;
     	var MulOrDiv = new Token(TokenType.None,null,new Pos(0,0),new Pos(0,0));
-    	try {
-			while(check(TokenType.MUL)||check(TokenType.DIV))
+    	while(check(TokenType.MUL)||check(TokenType.DIV))
+		{
+			MulOrDiv = next();
+			str2=analyseExpr2();
+			if(!str1.equals(str2))
+				throw new AnalyzeError(ErrorCode.TypeMismatch,MulOrDiv.getStartPos());
+			else
 			{
-				MulOrDiv = next();
-				str2=analyseExpr2();
-				if(!str1.equals(str2))
-					throw new AnalyzeError(ErrorCode.TypeMismatch,MulOrDiv.getStartPos());
+				if(MulOrDiv.getValue().toString().equals("*"))
+				{
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("MulI",(long) -1));
+					else
+						this.insructions.add(new Pair<String, Long>("MulF",(long) -1));
+				}
 				else
 				{
-					if(MulOrDiv.getValue().toString().equals("*"))
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("MulI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("MulF",(long) -1));
-					}
+					if(str1.equals("int"))
+						this.insructions.add(new Pair<String, Long>("DivI",(long) -1));
 					else
-					{
-						if(str1.equals("int"))
-							this.insructions.add(new Pair<String, Long>("DivI",(long) -1));
-						else
-							this.insructions.add(new Pair<String, Long>("DivF",(long) -1));
-					}
+						this.insructions.add(new Pair<String, Long>("DivF",(long) -1));
 				}
 			}
-
-		} catch (TokenizeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (AnalyzeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CompileError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		return str1;
     }
@@ -775,101 +718,70 @@ public final class Analyser {
      * 表达式（3级）（括号、函数、负号、Unit、Double、String、IDENT）
      */
     private String analyseExpr3() throws CompileError {
-    	try {
-			//括号
-			if(check(TokenType.L_PAREN))
-			{
-				expect(TokenType.L_PAREN);
-				String str = analyseExpr();
-				expect(TokenType.R_PAREN);
-				return str;
-			}
-			//函数
-			else if(check(TokenType.IDENT)&&(getType(peek().getValue().toString(),peek().getStartPos()).charAt(0)=='f'))
-			{
-				var fn = next();
-				String str = this.symbolTable.get(fn.getValue().toString()).type.substring(2);
-				if(str.equals("void"))
-					this.insructions.add(new Pair<String, Long>("StackAlloc",(long) 0));
-				else
-					this.insructions.add(new Pair<String, Long>("StackAlloc",(long) 1));
-				expect(TokenType.L_PAREN);
-				while(!check(TokenType.R_PAREN))
-				{
-					analyseCompare_expr();
-					if(!check(TokenType.COMMA))
-						break;
-					expect(TokenType.COMMA);
-				}
-				expect(TokenType.R_PAREN);
-				if(this.ku.contains(fn.getValue().toString()))
-					this.insructions.add(new Pair<String, Long>("CallName",(long) this.CallNameNum++));
-				else if(this.function.get(fn.getValue().toString())!=null)
-					this.insructions.add(new Pair<String, Long>("Call",this.function.get(fn.getValue().toString()).longValue()));
-				return str;
-			}
-			//负号
-			else if(check(TokenType.MINUS))
-			{
-				expect(TokenType.MINUS);
-				String str = analyseExpr();
-				if(str.equals("int"))
-					this.insructions.add(new Pair<String, Long>("NegI",(long) -1));
-				else
-					this.insructions.add(new Pair<String, Long>("NegF",(long) -1));
-				return str;
-			}
-			else if(check(TokenType.UINT_LITERAL))
-			{
-				var nameToken = expect(TokenType.UINT_LITERAL);
-				this.insructions.add(new Pair<String, Long>("Push",((Integer)(nameToken.getValue())).longValue()));
-				return "int";
-			}
-			else if(check(TokenType.DOUBLE_LITERAL))
-			{
-				var nameToken = expect(TokenType.DOUBLE_LITERAL);
-				this.insructions.add(new Pair<String, Long>("Push",Double.doubleToRawLongBits((Double) nameToken.getValue())));
-				return "double";
-			}
-			else if(check(TokenType.STRING_LITERAL))
-			{
-				var nameToken = expect(TokenType.STRING_LITERAL);
-				this.insructions.add(new Pair<String, Long>("Push",this.global.get(nameToken.getValue().toString()).longValue()));
-				return "string";
-			}
-			else if(check(TokenType.IDENT))
-			{
-				var nameToken = expect(TokenType.IDENT);
-				if(!this.symbolTable.get(nameToken.getValue().toString()).isInitialized)
-					throw new AnalyzeError(ErrorCode.NotInitialized,nameToken.getStartPos());
-				if(this.arga.get(nameToken.getValue().toString())!=null)
-					this.insructions.add(new Pair<String, Long>("ArgA",this.arga.get(nameToken.getValue().toString()).longValue()));
-				else if(this.loca.get(nameToken.getValue().toString())!=null)
-					this.insructions.add(new Pair<String, Long>("LocA",this.loca.get(nameToken.getValue().toString()).longValue()));
-				else if(this.globa.get(nameToken.getValue().toString())!=null)
-					this.insructions.add(new Pair<String, Long>("GlobA",this.globa.get(nameToken.getValue().toString()).longValue()));
-				else
-					throw new AnalyzeError(ErrorCode.NotDeclared,nameToken.getStartPos());
-				this.insructions.add(new Pair<String, Long>("Load64",(long) -1));
-				return this.symbolTable.get(nameToken.getValue().toString()).type;
-			}
-			else
-				throw new AnalyzeError(ErrorCode.InvalidPrint, peek().getStartPos());
-		} catch (TokenizeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (AnalyzeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CompileError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+    	//括号
+		if(check(TokenType.L_PAREN))
+		{
+			expect(TokenType.L_PAREN);
+			String str = analyseExpr();
+			expect(TokenType.R_PAREN);
+			return str;
 		}
-		return null;
-    }
-    
-    private String analyseExpr3(Token nameToken) throws CompileError{
-    	try {
+		//函数
+		else if(check(TokenType.IDENT)&&(getType(peek().getValue().toString(),peek().getStartPos()).charAt(0)=='f'))
+		{
+			var fn = next();
+			String str = this.symbolTable.get(fn.getValue().toString()).type.substring(2);
+			if(str.equals("void"))
+				this.insructions.add(new Pair<String, Long>("StackAlloc",(long) 0));
+			else
+				this.insructions.add(new Pair<String, Long>("StackAlloc",(long) 1));
+			expect(TokenType.L_PAREN);
+			while(!check(TokenType.R_PAREN))
+			{
+				analyseCompare_expr();
+				if(!check(TokenType.COMMA))
+					break;
+				expect(TokenType.COMMA);
+			}
+			expect(TokenType.R_PAREN);
+			if(this.ku.contains(fn.getValue().toString()))
+				this.insructions.add(new Pair<String, Long>("CallName",(long) this.CallNameNum++));
+			else if(this.function.get(fn.getValue().toString())!=null)
+				this.insructions.add(new Pair<String, Long>("Call",this.function.get(fn.getValue().toString()).longValue()));
+			return str;
+		}
+		//负号
+		else if(check(TokenType.MINUS))
+		{
+			expect(TokenType.MINUS);
+			String str = analyseExpr();
+			if(str.equals("int"))
+				this.insructions.add(new Pair<String, Long>("NegI",(long) -1));
+			else
+				this.insructions.add(new Pair<String, Long>("NegF",(long) -1));
+			return str;
+		}
+		else if(check(TokenType.UINT_LITERAL))
+		{
+			var nameToken = expect(TokenType.UINT_LITERAL);
+			this.insructions.add(new Pair<String, Long>("Push",((Integer)(nameToken.getValue())).longValue()));
+			return "int";
+		}
+		else if(check(TokenType.DOUBLE_LITERAL))
+		{
+			var nameToken = expect(TokenType.DOUBLE_LITERAL);
+			this.insructions.add(new Pair<String, Long>("Push",Double.doubleToRawLongBits((Double) nameToken.getValue())));
+			return "double";
+		}
+		else if(check(TokenType.STRING_LITERAL))
+		{
+			var nameToken = expect(TokenType.STRING_LITERAL);
+			this.insructions.add(new Pair<String, Long>("Push",this.global.get(nameToken.getValue().toString()).longValue()));
+			return "string";
+		}
+		else if(check(TokenType.IDENT))
+		{
+			var nameToken = expect(TokenType.IDENT);
 			if(!this.symbolTable.get(nameToken.getValue().toString()).isInitialized)
 				throw new AnalyzeError(ErrorCode.NotInitialized,nameToken.getStartPos());
 			if(this.arga.get(nameToken.getValue().toString())!=null)
@@ -880,12 +792,25 @@ public final class Analyser {
 				this.insructions.add(new Pair<String, Long>("GlobA",this.globa.get(nameToken.getValue().toString()).longValue()));
 			else
 				throw new AnalyzeError(ErrorCode.NotDeclared,nameToken.getStartPos());
+			this.insructions.add(new Pair<String, Long>("Load64",(long) -1));
 			return this.symbolTable.get(nameToken.getValue().toString()).type;
-		} catch (AnalyzeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		return null;
+		else
+			throw new AnalyzeError(ErrorCode.InvalidPrint, peek().getStartPos());
+    }
+    
+    private String analyseExpr3(Token nameToken) throws CompileError{
+    	if(!this.symbolTable.get(nameToken.getValue().toString()).isInitialized)
+			throw new AnalyzeError(ErrorCode.NotInitialized,nameToken.getStartPos());
+		if(this.arga.get(nameToken.getValue().toString())!=null)
+			this.insructions.add(new Pair<String, Long>("ArgA",this.arga.get(nameToken.getValue().toString()).longValue()));
+		else if(this.loca.get(nameToken.getValue().toString())!=null)
+			this.insructions.add(new Pair<String, Long>("LocA",this.loca.get(nameToken.getValue().toString()).longValue()));
+		else if(this.globa.get(nameToken.getValue().toString())!=null)
+			this.insructions.add(new Pair<String, Long>("GlobA",this.globa.get(nameToken.getValue().toString()).longValue()));
+		else
+			throw new AnalyzeError(ErrorCode.NotDeclared,nameToken.getStartPos());
+		return this.symbolTable.get(nameToken.getValue().toString()).type;
     }
     
     /**

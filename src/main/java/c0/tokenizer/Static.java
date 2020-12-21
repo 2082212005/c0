@@ -96,7 +96,13 @@ public class Static {
     				else if(check(TokenType.IDENT))
     	    		{
     	    			String name = next().getValue().toString();
-    	    			if(kufunction.contains(name))
+    	    			if(name.equals("putstr"))
+    	    			{
+    	    				next();
+    	    				global.put(i++, next().getValue().toString());
+    	    				global.put(i++, "putstr");
+    	    			}
+    	    			else if(kufunction.contains(name))
     	    				global.put(i++,name);
     	    		}
     				else if(check(TokenType.CONST_KW)||check(TokenType.LET_KW))

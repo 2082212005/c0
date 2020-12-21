@@ -834,6 +834,7 @@ public final class Analyser {
 			else if(check(TokenType.STRING_LITERAL))
 			{
 				var nameToken = expect(TokenType.STRING_LITERAL);
+				this.insructions.add(new Pair<String, Long>("Push",this.global.get(nameToken.getValue().toString()).longValue()));
 				return "string";
 			}
 			else if(check(TokenType.IDENT))

@@ -138,7 +138,7 @@ public class App {
 				Pair<HashMap<Integer,String>,List<Pair<String,Integer>>> pair = statics.analyse();
 				HashMap<Integer,String> stas = pair.getKey();
 				List<Pair<String,Integer>> loc = pair.getValue();
-				for(int i=0;i<stas.size();i++)
+				/*for(int i=0;i<stas.size();i++)
 				{
 					output.print("static: ");
 				    String name = stas.get(i);
@@ -154,7 +154,7 @@ public class App {
 				}
 				output.println("static: 5F 73 74 61 72 74 (`_start`)");
 				output.println();
-				output.println();
+				output.println();*/
 				var analyzer = new Analyser(tokenizer2,stas,output,loc);
 				List<Instruction> instructions;
 				instructions = analyzer.analyse();

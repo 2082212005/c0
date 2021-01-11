@@ -722,7 +722,7 @@ public final class Analyser {
 		if(check(TokenType.L_PAREN))
 		{
 			expect(TokenType.L_PAREN);
-			String str = analyseExpr();
+			String str = analyseCompare_expr();
 			expect(TokenType.R_PAREN);
 			return str;
 		}
@@ -738,7 +738,7 @@ public final class Analyser {
 			expect(TokenType.L_PAREN);
 			while(!check(TokenType.R_PAREN))
 			{
-				analyseCompare_expr();
+				analyseExpr();
 				if(!check(TokenType.COMMA))
 					break;
 				expect(TokenType.COMMA);

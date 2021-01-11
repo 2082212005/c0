@@ -196,12 +196,12 @@ public class Tokenizer {
     }
     
     //注释
-    private Token lexComment() throws TokenizeError{
+    private void lexComment() throws TokenizeError{
     	String s="";
         Pos ppos=it.currentPos();
         while(it.peekChar()!='\n')
         	s=s+it.nextChar();	
-        return new Token(TokenType.COMMENT, s, ppos, it.currentPos());
+        //return new Token(TokenType.COMMENT, s, ppos, it.currentPos());
     }
     
     //其它
@@ -225,7 +225,7 @@ public class Tokenizer {
             	if(it.peekChar()=='/')
             	{
             		it.nextChar();
-            		return lexComment();
+            		lexComment();
             	}
             	return new Token(TokenType.DIV, '/', it.previousPos(), it.currentPos());
             	

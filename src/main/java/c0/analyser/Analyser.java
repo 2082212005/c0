@@ -301,9 +301,9 @@ public final class Analyser {
     	}
     	if(mainnum==-1)
     		throw new AnalyzeError(ErrorCode.NoMainFunction,new Pos(0,0));
-    	this.insructions.add(new Pair<String, Long>("StackAlloc",(long) 0));
-    	this.insructions.add(new Pair<String, Long>("Call",(long) mainnum));
-    	output.println("fn ["+stas.size()+"] 0 0 -> 0 {");
+    	this.insructions.add(new Pair<String, Long>("1a",(long) 0));
+    	this.insructions.add(new Pair<String, Long>("48",(long) mainnum));
+    	/*output.println("fn ["+stas.size()+"] 0 0 -> 0 {");
     	//内容
     	int x=0;
     	for(Pair<String,Long> ins : this.insructions) {
@@ -315,6 +315,20 @@ public final class Analyser {
     		x++;
     	}
     	output.println("}");
+    	output.println();*/
+    	output.println(hex32((long) (this.function_num+1)));
+    	output.println("00 00 00 00");
+    	output.println("00 00 00 00");
+    	output.println("00 00 00 00");
+    	output.println(hex32((long) this.insructions.size()));
+    	for(Pair<String,Long> ins : this.insructions) {
+    		output.print("    "+ins.getKey()+" ");
+    		if(ins.getValue()!=-1)
+    			output.println(hex32(ins.getValue()));
+    		else
+    			output.println();
+    	}
+    	output.println();
     	output.println();
     	//清空表
     	this.insructions.clear();
@@ -383,11 +397,11 @@ public final class Analyser {
     	this.function_num++;
     	function.put(name, this.function_num);
     	//输出
-    	this.insructions.add(new Pair<String, Long>("Ret",(long) -1));
+    	this.insructions.add(new Pair<String, Long>("49",(long) -1));
     	int type = 1;
     	if(ty.getValue().toString().equals("void"))
     		type = 0;
-    	output.println("fn ["+global.get(name)+"] "+local.get(this.local_num++).getSecond()+" "+param_num+" -> "+type+" {");
+    	/*output.println("fn ["+global.get(name)+"] "+local.get(this.local_num++).getSecond()+" "+param_num+" -> "+type+" {");
     	//内容
     	int x=0;
     	for(Pair<String,Long> ins : this.insructions) {
@@ -401,8 +415,25 @@ public final class Analyser {
     		x++;
     	}
     	output.println("}");
+    	output.println();*/
+    	output.println(hex32((long) (this.function_num+1)));
+    	output.println(hex32((long) (type)));
+    	output.println(hex32((long) (param_num)));
+    	output.println(hex32((long) (local.get(this.local_num++).getSecond())));
+    	output.println(hex32((long) this.insructions.size()));
+    	for(Pair<String,Long> ins : this.insructions) {
+    		output.print("    "+ins.getKey()+" ");
+    		if(type == 1&&ins.getKey().equals("0b")) 
+    			output.println(hex32(ins.getValue()+1));
+    		else if(ins.getKey().equals("01"))
+    			output.println(hex64(ins.getValue()));
+    		else if(ins.getValue()!=-1)
+    			output.println(hex32(ins.getValue()));
+    		else
+    			output.println();
+    	}
     	output.println();
-    	
+    	output.println();
     	//清空表
     	this.arga.clear();
     	this.arga_num=0;
@@ -448,11 +479,11 @@ public final class Analyser {
 				if(this.symbolTable.get(ident.getValue().toString()).isConstant)
 					throw new AnalyzeError(ErrorCode.AssignToConstant,ident.getStartPos());
 				if(this.arga.get(ident.getValue().toString())!=null)
-					this.insructions.add(new Pair<String, Long>("ArgA",this.arga.get(ident.getValue().toString()).longValue()));
+					this.insructions.add(new Pair<String, Long>("0b",this.arga.get(ident.getValue().toString()).longValue()));
 				else if(this.loca.get(ident.getValue().toString())!=null)
-					this.insructions.add(new Pair<String, Long>("LocA",this.loca.get(ident.getValue().toString()).longValue()));
+					this.insructions.add(new Pair<String, Long>("0a",this.loca.get(ident.getValue().toString()).longValue()));
 				else if(this.globa.get(ident.getValue().toString())!=null)
-					this.insructions.add(new Pair<String, Long>("GlobA",this.globa.get(ident.getValue().toString()).longValue()));
+					this.insructions.add(new Pair<String, Long>("0c",this.globa.get(ident.getValue().toString()).longValue()));
 				else
 					throw new AnalyzeError(ErrorCode.NotDeclared,ident.getStartPos());
 				var ass = expect(TokenType.ASSIGN);
@@ -460,7 +491,7 @@ public final class Analyser {
 				if(!str1.equals(str2))
 		    		throw new AnalyzeError(ErrorCode.TypeMismatch,ass.getStartPos());
 				str1 = "void";
-				this.insructions.add(new Pair<String, Long>("Store64",(long) -1));
+				this.insructions.add(new Pair<String, Long>("17",(long) -1));
 				declareSymbol(ident.getValue().toString(), ident.getStartPos());
 			}
 			else
@@ -487,51 +518,51 @@ public final class Analyser {
 				if(compareSign.getValue().toString().equals(">"))
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("30",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-					this.insructions.add(new Pair<String, Long>("SetGt",(long) -1));
+						this.insructions.add(new Pair<String, Long>("32",(long) -1));
+					this.insructions.add(new Pair<String, Long>("3a",(long) -1));
 				}
 				else if(compareSign.getValue().toString().equals("<"))
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("30",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-					this.insructions.add(new Pair<String, Long>("SetLt",(long) -1));
+						this.insructions.add(new Pair<String, Long>("32",(long) -1));
+					this.insructions.add(new Pair<String, Long>("39",(long) -1));
 				}
 				else if(compareSign.getValue().toString().equals(">="))
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("30",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-					this.insructions.add(new Pair<String, Long>("SetLt",(long) -1));
-					this.insructions.add(new Pair<String, Long>("Not",(long) -1));
+						this.insructions.add(new Pair<String, Long>("32",(long) -1));
+					this.insructions.add(new Pair<String, Long>("39",(long) -1));
+					this.insructions.add(new Pair<String, Long>("2e",(long) -1));
 				}
 				else if(compareSign.getValue().toString().equals("<="))
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("30",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-					this.insructions.add(new Pair<String, Long>("SetGt",(long) -1));
-					this.insructions.add(new Pair<String, Long>("Not",(long) -1));
+						this.insructions.add(new Pair<String, Long>("32",(long) -1));
+					this.insructions.add(new Pair<String, Long>("3a",(long) -1));
+					this.insructions.add(new Pair<String, Long>("2e",(long) -1));
 				}
 				else if(compareSign.getValue().toString().equals("!="))
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("30",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
+						this.insructions.add(new Pair<String, Long>("32",(long) -1));
 				}
 				else
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("CmpI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("30",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("CmpF",(long) -1));
-					this.insructions.add(new Pair<String, Long>("Not",(long) -1));
+						this.insructions.add(new Pair<String, Long>("32",(long) -1));
+					this.insructions.add(new Pair<String, Long>("2e",(long) -1));
 				}
 			}
 			str1 = "boolean";
@@ -557,16 +588,16 @@ public final class Analyser {
 				if(PlusOrMinus.getValue().toString().equals("+"))
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("AddI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("20",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("AddF",(long) -1));
+						this.insructions.add(new Pair<String, Long>("24",(long) -1));
 				}
 				else
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("SubI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("21",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("SubF",(long) -1));
+						this.insructions.add(new Pair<String, Long>("25",(long) -1));
 				}
 			}
 		}
@@ -588,16 +619,16 @@ public final class Analyser {
 				if(PlusOrMinus.getValue().toString().equals("+"))
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("AddI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("20",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("AddF",(long) -1));
+						this.insructions.add(new Pair<String, Long>("24",(long) -1));
 				}
 				else
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("SubI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("21",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("SubF",(long) -1));
+						this.insructions.add(new Pair<String, Long>("25",(long) -1));
 				}
 			}
 		}
@@ -622,16 +653,16 @@ public final class Analyser {
 				if(MulOrDiv.getValue().toString().equals("*"))
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("MulI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("22",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("MulF",(long) -1));
+						this.insructions.add(new Pair<String, Long>("26",(long) -1));
 				}
 				else
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("DivI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("23",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("DivF",(long) -1));
+						this.insructions.add(new Pair<String, Long>("27",(long) -1));
 				}
 			}
 		}
@@ -653,16 +684,16 @@ public final class Analyser {
 				if(MulOrDiv.getValue().toString().equals("*"))
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("MulI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("22",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("MulF",(long) -1));
+						this.insructions.add(new Pair<String, Long>("26",(long) -1));
 				}
 				else
 				{
 					if(str1.equals("int"))
-						this.insructions.add(new Pair<String, Long>("DivI",(long) -1));
+						this.insructions.add(new Pair<String, Long>("23",(long) -1));
 					else
-						this.insructions.add(new Pair<String, Long>("DivF",(long) -1));
+						this.insructions.add(new Pair<String, Long>("27",(long) -1));
 				}
 			}
 		}
@@ -681,9 +712,9 @@ public final class Analyser {
 				var ty = next();
 				String ty2 = ty.getValue().toString();
 				if(str.equals("int")&&ty2.equals("double"))
-					this.insructions.add(new Pair<String, Long>("IToF",(long) -1));
+					this.insructions.add(new Pair<String, Long>("36",(long) -1));
 				else if(ty2.equals("int")&&str.equals("double"))
-					this.insructions.add(new Pair<String, Long>("FToI",(long) -1));
+					this.insructions.add(new Pair<String, Long>("37",(long) -1));
 				return ty2;
 			}
 		} catch (TokenizeError e) {
@@ -702,9 +733,9 @@ public final class Analyser {
 				var ty = next();
 				String ty2 = ty.getValue().toString();
 				if(str.equals("int")&&ty2.equals("double"))
-					this.insructions.add(new Pair<String, Long>("IToF",(long) -1));
+					this.insructions.add(new Pair<String, Long>("36",(long) -1));
 				else if(ty2.equals("int")&&str.equals("double"))
-					this.insructions.add(new Pair<String, Long>("FToI",(long) -1));
+					this.insructions.add(new Pair<String, Long>("37",(long) -1));
 				return ty2;
 			}
 		} catch (TokenizeError e) {
@@ -732,9 +763,9 @@ public final class Analyser {
 			var fn = next();
 			String str = this.symbolTable.get(fn.getValue().toString()).type.substring(2);
 			if(str.equals("void"))
-				this.insructions.add(new Pair<String, Long>("StackAlloc",(long) 0));
+				this.insructions.add(new Pair<String, Long>("1a",(long) 0));
 			else
-				this.insructions.add(new Pair<String, Long>("StackAlloc",(long) 1));
+				this.insructions.add(new Pair<String, Long>("1a",(long) 1));
 			expect(TokenType.L_PAREN);
 			while(!check(TokenType.R_PAREN))
 			{
@@ -745,9 +776,9 @@ public final class Analyser {
 			}
 			expect(TokenType.R_PAREN);
 			if(this.ku.contains(fn.getValue().toString()))
-				this.insructions.add(new Pair<String, Long>("CallName",(long) this.CallNameNum++));
+				this.insructions.add(new Pair<String, Long>("4a",(long) this.CallNameNum++));
 			else if(this.function.get(fn.getValue().toString())!=null)
-				this.insructions.add(new Pair<String, Long>("Call",this.function.get(fn.getValue().toString()).longValue()));
+				this.insructions.add(new Pair<String, Long>("48",this.function.get(fn.getValue().toString()).longValue()));
 			return str;
 		}
 		//负号
@@ -756,27 +787,27 @@ public final class Analyser {
 			expect(TokenType.MINUS);
 			String str = analyseExpr();
 			if(str.equals("int"))
-				this.insructions.add(new Pair<String, Long>("NegI",(long) -1));
+				this.insructions.add(new Pair<String, Long>("34",(long) -1));
 			else
-				this.insructions.add(new Pair<String, Long>("NegF",(long) -1));
+				this.insructions.add(new Pair<String, Long>("35",(long) -1));
 			return str;
 		}
 		else if(check(TokenType.UINT_LITERAL))
 		{
 			var nameToken = expect(TokenType.UINT_LITERAL);
-			this.insructions.add(new Pair<String, Long>("Push",((Integer)(nameToken.getValue())).longValue()));
+			this.insructions.add(new Pair<String, Long>("01",((Integer)(nameToken.getValue())).longValue()));
 			return "int";
 		}
 		else if(check(TokenType.DOUBLE_LITERAL))
 		{
 			var nameToken = expect(TokenType.DOUBLE_LITERAL);
-			this.insructions.add(new Pair<String, Long>("Push",Double.doubleToRawLongBits((Double) nameToken.getValue())));
+			this.insructions.add(new Pair<String, Long>("01",Double.doubleToRawLongBits((Double) nameToken.getValue())));
 			return "double";
 		}
 		else if(check(TokenType.STRING_LITERAL))
 		{
 			var nameToken = expect(TokenType.STRING_LITERAL);
-			this.insructions.add(new Pair<String, Long>("Push",this.global.get(nameToken.getValue().toString()).longValue()));
+			this.insructions.add(new Pair<String, Long>("01",this.global.get(nameToken.getValue().toString()).longValue()));
 			return "string";
 		}
 		else if(check(TokenType.IDENT))
@@ -785,14 +816,14 @@ public final class Analyser {
 			if(!this.symbolTable.get(nameToken.getValue().toString()).isInitialized)
 				throw new AnalyzeError(ErrorCode.NotInitialized,nameToken.getStartPos());
 			if(this.arga.get(nameToken.getValue().toString())!=null)
-				this.insructions.add(new Pair<String, Long>("ArgA",this.arga.get(nameToken.getValue().toString()).longValue()));
+				this.insructions.add(new Pair<String, Long>("0b",this.arga.get(nameToken.getValue().toString()).longValue()));
 			else if(this.loca.get(nameToken.getValue().toString())!=null)
-				this.insructions.add(new Pair<String, Long>("LocA",this.loca.get(nameToken.getValue().toString()).longValue()));
+				this.insructions.add(new Pair<String, Long>("0a",this.loca.get(nameToken.getValue().toString()).longValue()));
 			else if(this.globa.get(nameToken.getValue().toString())!=null)
-				this.insructions.add(new Pair<String, Long>("GlobA",this.globa.get(nameToken.getValue().toString()).longValue()));
+				this.insructions.add(new Pair<String, Long>("0c",this.globa.get(nameToken.getValue().toString()).longValue()));
 			else
 				throw new AnalyzeError(ErrorCode.NotDeclared,nameToken.getStartPos());
-			this.insructions.add(new Pair<String, Long>("Load64",(long) -1));
+			this.insructions.add(new Pair<String, Long>("13",(long) -1));
 			return this.symbolTable.get(nameToken.getValue().toString()).type;
 		}
 		else
@@ -803,11 +834,11 @@ public final class Analyser {
     	if(!this.symbolTable.get(nameToken.getValue().toString()).isInitialized)
 			throw new AnalyzeError(ErrorCode.NotInitialized,nameToken.getStartPos());
 		if(this.arga.get(nameToken.getValue().toString())!=null)
-			this.insructions.add(new Pair<String, Long>("ArgA",this.arga.get(nameToken.getValue().toString()).longValue()));
+			this.insructions.add(new Pair<String, Long>("0b",this.arga.get(nameToken.getValue().toString()).longValue()));
 		else if(this.loca.get(nameToken.getValue().toString())!=null)
-			this.insructions.add(new Pair<String, Long>("LocA",this.loca.get(nameToken.getValue().toString()).longValue()));
+			this.insructions.add(new Pair<String, Long>("0a",this.loca.get(nameToken.getValue().toString()).longValue()));
 		else if(this.globa.get(nameToken.getValue().toString())!=null)
-			this.insructions.add(new Pair<String, Long>("GlobA",this.globa.get(nameToken.getValue().toString()).longValue()));
+			this.insructions.add(new Pair<String, Long>("0c",this.globa.get(nameToken.getValue().toString()).longValue()));
 		else
 			throw new AnalyzeError(ErrorCode.NotDeclared,nameToken.getStartPos());
 		return this.symbolTable.get(nameToken.getValue().toString()).type;
@@ -827,29 +858,29 @@ public final class Analyser {
     private void analyseIf_stmt() throws CompileError {
     	expect(TokenType.IF_KW);
     	analyseCompare_expr();
-    	this.insructions.add(new Pair<String, Long>("BrTure",(long) 1));
-    	this.insructions.add(new Pair<String, Long>("Br",(long) -1));
+    	this.insructions.add(new Pair<String, Long>("43",(long) 1));
+    	this.insructions.add(new Pair<String, Long>("41",(long) -1));
     	int i=this.insructions.size();
     	int j=0;
     	analyseBlock_stmt();
     	if(check(TokenType.ELSE_KW))
     	{
     		expect(TokenType.ELSE_KW);
-    		this.insructions.add(new Pair<String, Long>("Br",(long) 0));
+    		this.insructions.add(new Pair<String, Long>("41",(long) 0));
     		j=this.insructions.size();
     		if(check(TokenType.IF_KW))
     			analyseIf_stmt();
     		else
     			analyseBlock_stmt();
     	}
-    	this.insructions.add(new Pair<String, Long>("Br",(long) 0));
+    	this.insructions.add(new Pair<String, Long>("41",(long) 0));
     	if(j!=0)
     	{
-    		this.insructions.set((i-1),new Pair<String, Long>("Br",(long) (j-i)));
-    		this.insructions.set((j-1),new Pair<String, Long>("Br",(long) (this.insructions.size()-j)));
+    		this.insructions.set((i-1),new Pair<String, Long>("41",(long) (j-i)));
+    		this.insructions.set((j-1),new Pair<String, Long>("41",(long) (this.insructions.size()-j)));
     	}
     	else
-    		this.insructions.set((i-1),new Pair<String, Long>("Br",(long) (this.insructions.size()-i)));
+    		this.insructions.set((i-1),new Pair<String, Long>("41",(long) (this.insructions.size()-i)));
     }
     
     /**
@@ -857,16 +888,16 @@ public final class Analyser {
      */
     private void analyseWhile_stmt() throws CompileError {
     	expect(TokenType.WHILE_KW);
-    	this.insructions.add(new Pair<String, Long>("Br",(long) 0));
+    	this.insructions.add(new Pair<String, Long>("41",(long) 0));
     	int i=this.insructions.size();
     	analyseCompare_expr();
-    	this.insructions.add(new Pair<String, Long>("BrTure",(long) 1));
-    	this.insructions.add(new Pair<String, Long>("Br",(long) -1));
+    	this.insructions.add(new Pair<String, Long>("43",(long) 1));
+    	this.insructions.add(new Pair<String, Long>("41",(long) -1));
     	int j=this.insructions.size();
     	analyseBlock_stmt();
-    	this.insructions.add(new Pair<String, Long>("Br",(long) (i-this.insructions.size()-1)));
+    	this.insructions.add(new Pair<String, Long>("41",(long) (i-this.insructions.size()-1)));
     	int k=this.insructions.size();
-    	this.insructions.set((j-1),new Pair<String, Long>("Br",(long) (k-j)));
+    	this.insructions.set((j-1),new Pair<String, Long>("41",(long) (k-j)));
     }
     
     /**
@@ -880,10 +911,10 @@ public final class Analyser {
     	}
     	else
     	{
-    		this.insructions.add(new Pair<String, Long>("ArgA",(long) -1));
+    		this.insructions.add(new Pair<String, Long>("0b",(long) -1));
     		analyseCompare_expr();
     		expect(TokenType.SEMICOLON);
-    		this.insructions.add(new Pair<String, Long>("Store64",(long) -1));
+    		this.insructions.add(new Pair<String, Long>("17",(long) -1));
     	}
     }
     
@@ -911,9 +942,9 @@ public final class Analyser {
     	if(nextIf(TokenType.CONST_KW) != null) {
     		if(this.lay==0) {
     			this.CallNameNum++;
-    			this.insructions.add(new Pair<String, Long>("GlobA",(long) this.globa_num));
+    			this.insructions.add(new Pair<String, Long>("0c",(long) this.globa_num));
     		}else {
-    			this.insructions.add(new Pair<String, Long>("LocA",(long) this.loca_num));
+    			this.insructions.add(new Pair<String, Long>("0a",(long) this.loca_num));
     		}
     		var nameToken = expect(TokenType.IDENT);
     		expect(TokenType.COLON);
@@ -927,7 +958,7 @@ public final class Analyser {
     			this.loca.put(nameToken.getValue().toString(), this.loca_num++);
     		}
     		addSymbol(nameToken.getValue().toString(),ty.getValue().toString(),true,true,this.lay,nameToken.getStartPos());
-    		this.insructions.add(new Pair<String, Long>("Store64",(long) -1));
+    		this.insructions.add(new Pair<String, Long>("17",(long) -1));
     	}
     	else if(nextIf(TokenType.LET_KW) != null) {
     		boolean isInitialized=false;
@@ -938,9 +969,9 @@ public final class Analyser {
     		{
     			expect(TokenType.ASSIGN);
     			if(this.lay==0) {
-    				this.insructions.add(new Pair<String, Long>("GlobA",(long) this.globa_num));
+    				this.insructions.add(new Pair<String, Long>("0c",(long) this.globa_num));
         		}else {
-        			this.insructions.add(new Pair<String, Long>("LocA",(long) this.loca_num));
+        			this.insructions.add(new Pair<String, Long>("0a",(long) this.loca_num));
         		}
     			analyseExpr();
     			isInitialized=true;
@@ -957,9 +988,56 @@ public final class Analyser {
     		else
     		{
     			addSymbol(nameToken.getValue().toString(),ty.getValue().toString(),true,false,this.lay,nameToken.getStartPos());
-    			this.insructions.add(new Pair<String, Long>("Store64",(long) -1));
+    			this.insructions.add(new Pair<String, Long>("17",(long) -1));
     		}
     	}
     }
-       
+    
+    /**
+     * 8字节16进制数
+     */
+    private String hex32(Long long1) {
+    	String hex = Long.toHexString(long1);
+		for(int z=hex.length();z<8;)
+		{
+			hex='0'+hex;
+			z=hex.length();
+		}
+		if(long1<0)
+			hex=hex.substring(8);
+		int q=0;
+		for(int z=0;z<8;z++)
+		{
+			q+=1;
+			if(z%2==1)
+			{
+				hex=hex.substring(0,q)+' '+hex.substring(q);
+				q+=1;
+			}
+		}
+		return hex;
+    }
+    
+    /**
+     * 16字节16进制数
+     */
+    private String hex64(Long long1) {
+    	String hex = Long.toHexString(long1);
+		for(int z=hex.length();z<16;)
+		{
+			hex='0'+hex;
+			z=hex.length();
+		}
+		int q=0;
+		for(int z=0;z<16;z++)
+		{
+			q+=1;
+			if(z%2==1)
+			{
+				hex=hex.substring(0,q)+' '+hex.substring(q);
+				q+=1;
+			}
+		}
+		return hex;
+    }
 }

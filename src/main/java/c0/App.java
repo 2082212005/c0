@@ -31,8 +31,11 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 public class App {
-    public static void main(String[] args) throws CompileError {
-        var argparse = buildArgparse();
+	static List<String> kufunction = new ArrayList<String>();
+	
+	public static void main(String[] args) throws CompileError {
+    	init();
+		var argparse = buildArgparse();
         Namespace result;
         try {
             result = argparse.parseArgs(args);
@@ -138,6 +141,43 @@ public class App {
 				Pair<HashMap<Integer,String>,List<Pair<String,Integer>>> pair = statics.analyse();
 				HashMap<Integer,String> stas = pair.getKey();
 				List<Pair<String,Integer>> loc = pair.getValue();
+				if(stas.size()>0) {
+					output.println("72 30 3b 3e");
+					output.println("00 00 00 01");
+					output.println();
+					output.println(hex32(stas.size()+1));
+					output.println();
+					output.println();
+				}
+				int func_num=0;
+				for(int i=0;i<stas.size();i++)
+				{
+				    String name = stas.get(i);
+				    if(name.equals("0"))
+				    {
+				    	output.println("00");
+				    	output.println("00 00 00 08");
+				    	output.println("00 00 00 00 00 00 00 00");
+				    }
+				    else
+				    {
+				    	output.println("01");
+				    	output.println(hex32(name.length()));
+				    	for(int j=0;j<name.length();j++)
+				    		output.print("'"+name.charAt(j)+"' ");
+				    	if(!kufunction.contains(name))
+				    		func_num++;
+				    	output.println();
+				    }
+				    output.println();
+				}
+				output.println("01");
+		    	output.println("00 00 00 06");
+		    	output.println("'_' 's' 't' 'a' 'r' 't'");
+		    	output.println();
+		    	output.println(hex32(func_num+1));
+		    	output.println();
+		    	output.println();
 				/*for(int i=0;i<stas.size();i++)
 				{
 					output.print("static: ");
@@ -191,5 +231,62 @@ public class App {
         return tokenizer;
     }
     
+    /**
+     * 8字节16进制数
+     */
+    private static String hex32(Integer x) {
+    	String hex = Integer.toHexString(x);
+		for(int z=hex.length();z<8;)
+		{
+			hex='0'+hex;
+			z=hex.length();
+		}
+		if(x<0)
+			hex=hex.substring(8);
+		int q=0;
+		for(int z=0;z<8;z++)
+		{
+			q+=1;
+			if(z%2==1)
+			{
+				hex=hex.substring(0,q)+' '+hex.substring(q);
+				q+=1;
+			}
+		}
+		return hex;
+    }
     
+    /**
+     * 16字节16进制数
+     */
+    private static String hex64(Integer x) {
+    	String hex = Integer.toHexString(x);
+		for(int z=hex.length();z<16;)
+		{
+			hex='0'+hex;
+			z=hex.length();
+		}
+		int q=0;
+		for(int z=0;z<16;z++)
+		{
+			q+=1;
+			if(z%2==1)
+			{
+				hex=hex.substring(0,q)+' '+hex.substring(q);
+				q+=1;
+			}
+		}
+		return hex;
+    }
+    
+    private static void init() {
+		kufunction.add("getint");
+		kufunction.add("getdouble");
+		kufunction.add("getchar");
+		kufunction.add("putint");
+		kufunction.add("putdouble");
+		kufunction.add("putchar");
+		kufunction.add("putstr");
+		kufunction.add("putln");
+	}
 }
